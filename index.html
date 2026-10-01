@@ -78,13 +78,43 @@ td.max{color:var(--amber)}
 footer{text-align:center;padding:20px 16px 40px;font-size:13px;color:var(--t3);line-height:1.9}
 .leaflet-tile-pane{filter:brightness(.62) invert(1) contrast(1.6) hue-rotate(200deg) saturate(.3) brightness(.75)}
 .leaflet-control-attribution{font-size:11px!important}
+/* やさしい入口（2026-10-01）：専門の言葉なしで、土の中に何がいて何をしているかを一画面で。そのあとに、くわしい見方 */
+.easy{padding:30px 16px 26px;background:radial-gradient(120% 90% at 50% 0%,#1d2a22 0%,var(--bg) 70%);border-bottom:1px solid var(--bdr)}
+.easy .wrap{padding:0}
+.easy h1{font-size:clamp(23px,6vw,32px);margin:6px 0 10px}
+.easy .say{font-size:16.5px;color:var(--t1);max-width:40em}
+.who{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin:18px 0 6px}
+.who div{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:14px 15px}
+.who .nm{font-weight:700;font-size:16px}
+.who .sub{font-size:12.5px;color:var(--t3)}
+.who p{font-size:14.5px;color:var(--t2);margin-top:6px;line-height:1.75}
+.try{margin-top:14px;padding:13px 15px;border-radius:14px;border:1px dashed #3d5a3a;background:#121a14;font-size:14.5px;color:var(--t2)}
+.try b{color:#a8d89f}
+.go-detail{display:inline-block;margin-top:16px;padding:10px 18px;border-radius:999px;border:1px solid var(--blue);color:#bfe9fb;text-decoration:none;font-weight:700;font-size:14.5px}
+.easy .fine{font-size:12.5px;color:var(--t3);margin-top:10px}
 </style>
 </head>
 <body>
 
-<header>
+<section class="easy" aria-labelledby="easyTitle">
   <div class="wrap">
     <div class="kicker">mitsulab ／ 土の教材</div>
+    <h1 id="easyTitle">ひとつまみの土の中に、だれがいる？</h1>
+    <p class="say">手のひらにのるくらいの土にも、目に見えない小さな生きものが、数えきれないほど暮らしています。落ち葉や枯れた根を少しずつほどき、植物がまた使える養分へともどす。土の中では、そんな仕事が休まず続いています。</p>
+    <div class="who">
+      <div><div class="nm">細菌</div><div class="sub">土の中で、とても数が多いなかま</div><p>落ち葉や根のまわりの養分を分けて、形を変えます。空気中の窒素を、植物が使える形にするものもいます。</p></div>
+      <div><div class="nm">菌類</div><div class="sub">カビやきのこのなかま</div><p>細い糸（菌糸）をのばして、落ち葉や枯れ枝をほどきます。植物の根とつながって、水や養分をやりとりするものもいます。</p></div>
+      <div><div class="nm">古細菌</div><div class="sub">細菌に似ているけれど、別のなかま</div><p>空気の少ない場所でも暮らせるものがいます。水を張った田んぼの土では、メタンというガスをつくるものが見つかります。</p></div>
+    </div>
+    <div class="try"><b>庭や畑で、見てみる</b>　落ち葉をそっとめくると、白い糸のようなものが見えることがあります。その多くは菌類の菌糸です。雨のあとの「土のにおい」のもとの一つ（ゲオスミン）も、土の中の細菌のなかまがつくっています。</div>
+    <p class="fine">森・田んぼ・畑では、暮らしている顔ぶれの割合が違うことが知られています。この下では、その違いを、説明のために作った仮の数字で見くらべます。このページで、あなたの庭や畑の土の良し悪しは分かりません。</p>
+    <a class="go-detail" href="#detail">くわしい見方へ ↓</a>
+  </div>
+</section>
+
+<header id="detail">
+  <div class="wrap">
+    <div class="kicker">くわしい見方</div>
     <h1>土の微生物の顔ぶれ<br>── 埼玉の五つの土を見くらべる</h1>
     <div class="en">Who lives in the soil? Comparing microbial phyla across five soil types in Saitama — a teaching dashboard</div>
     <p class="lead">土の中には、目に見えない細菌・アーキア（古細菌）・菌類がたくさん暮らしています。その顔ぶれを DNA の配列から調べる方法（アンプリコン解析やメタゲノム解析）では、結果をまず「門」という大きなまとまりで示すことがよくあります。このページでは、森・水田・里山などの土で門の割合がどう違いうるかを見くらべ、多様度指数の読み方を学びます。</p>
