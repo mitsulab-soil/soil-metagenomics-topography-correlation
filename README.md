@@ -1,123 +1,55 @@
-# 埼玉県内における地形的多様性と土壌微生物相（細菌・真菌）のメタゲノム相関分析
+# 土の微生物の顔ぶれ ── 埼玉の五つの土を見くらべる
 
-（GitHub Pages）https://mitsulab-soil.github.io/soil-metagenomics-topography-correlation/
+Who lives in the soil? Comparing microbial phyla across five soil types in Saitama — a teaching dashboard
 
+公開先：https://mitsulab-soil.github.io/soil-metagenomics-topography-correlation/
 
-# 🧬 土壌メタゲノム解析ダッシュボード
-### Soil Metagenome Analysis Dashboard — mitsulab / 醸す谷 Vallis Fermenti
+## これは何か
 
-![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
-![Data: Simulation](https://img.shields.io/badge/Data-Simulation%20%28EMP%20based%29-amber)
-![Lang: Vanilla JS](https://img.shields.io/badge/Stack-HTML%20%2F%20Vanilla%20JS-blue)
-![Project: Vallis Fermenti](https://img.shields.io/badge/Project-醸す谷%20Vallis%20Fermenti-violet)
+土の中の細菌・アーキア（古細菌）と菌類を「門」という大きなまとまりで見くらべ、多様度指数（シャノン・シンプソン・ピエルー・バーガー＝パーカー）の読み方を学ぶための教材です。森・水田・丘陵・斜面など、埼玉にある五つの種類の土を想定しています。
 
----
+A teaching dashboard for comparing soil bacterial/archaeal and fungal phyla and for learning how common diversity indices behave.
 
-## 概要 / Overview
+## データの性質（必ず読んでください）
 
-埼玉県内5地点（秩父・入間・所沢・飯能・比企丘陵）の土壌微生物群集を、Earth Microbiome Project（EMP）等のオープンデータにおける典型的な門レベル組成パターンに基づいてシミュレートし、インタラクティブに可視化するダッシュボードです。
+- **数値はすべて、説明のために作った仮のデータです。実測ではありません。** 埼玉の五つの場所で土を採ったり、DNA を調べたりはしていません。
+- 文献で知られる大まかな傾向（酸性の森の土ではアシドバクテリア門が多め、水田ではメタンをつくるアーキアが見つかりやすい、など）に合わせて手で置いた値で、特定のデータベースから取り出した値ではありません。
+- 地図の点は地名のおおよその位置で、採取地点ではありません。pH・有機物・水分・深さも想定です。
+- 多様度指数は門の単位で計算しています。研究でふつう使う細かい単位（属・種・配列の型）の値とはくらべられません。
+- リポジトリ名に「topography-correlation（地形との相関）」とありますが、このページは地形との相関を分析していません。仮のデータ・五つの場所・一か所一試料では相関も因果も言えないため、ページの中で「本当に調べるには」を説明しています。
 
-An interactive dashboard that simulates and visualizes soil microbial community composition across 5 sites in Saitama Prefecture, based on typical phylum-level patterns from the Earth Microbiome Project (EMP) and related open datasets.
+All values are hypothetical, hand-set to reflect broad patterns reported in the literature. No samples were collected or sequenced. Do not use them as evidence.
 
-> ⚠️ **注意**: 本データは実際のeDNAサンプリング・シーケンシングによるものではなく、EMP等のオープンデータに基づくシミュレーション値です。  
-> This is simulated data based on open datasets, not actual sequencing results from field sampling.
+## 使い方
 
----
+`index.html` をブラウザで開くだけで動きます（インターネット接続が要ります。地図とグラフのライブラリを読み込むため）。
 
-## スクリーンショット / Screenshots
+## 参考にした資料
 
-| 地図 / Map | 組成比較 / Composition | 多様性指標 / Diversity |
-|---|---|---|
-| 埼玉5地点のLeafletマップ | 積み上げ棒グラフ・レーダーチャート | Shannon / Simpson / Pielou / Berger-Parker |
+数値をこれらから直接取り出してはいません。土の微生物の大まかな傾向を知るために参照しました。
 
----
+- Earth Microbiome Project — https://earthmicrobiome.org/
+- Thompson et al. (2017) *Nature* 551: 457–463. https://doi.org/10.1038/nature24621 （論文は CC BY 4.0）
+- Delgado-Baquerizo et al. (2018) *Science* 359: 320–325. https://doi.org/10.1126/science.aap9516
+- Shaffer et al. (2022) *Nature Microbiology* 7: 2128–2150. https://doi.org/10.1038/s41564-022-01266-x
+- Ma et al. (2023) *Nature Communications* 14: 7318. https://doi.org/10.1038/s41467-023-43000-z （論文は CC BY 4.0）
+- Rodrigues, Tackmann et al. (2026) The MicrobeAtlas database. *Cell*. https://microbeatlas.org/
+- Fierer & Jackson (2006) *PNAS* 103: 626–631. https://doi.org/10.1073/pnas.0507535103
+- Lauber et al. (2009) *Appl. Environ. Microbiol.* 75: 5111–5120. https://doi.org/10.1128/AEM.00335-09
+- Oren & Garrity (2021) *IJSEM* 71: 005056. https://doi.org/10.1099/ijsem.0.005056 （細菌の門の新しい学名）
 
-## 機能 / Features
+## 使っている道具とライセンス
 
-- **📍 Leafletマップ** — 埼玉県内5サンプリング地点のインタラクティブマップ（ダークスタイル）
-- **🧫 門組成比較** — 細菌・真菌の切り替えが可能な積み上げ棒グラフ・比較テーブル
-- **🕸️ レーダーチャート** — 主要門の地点間比較（Chart.js）
-- **🧬 多様性評価** — 4指標の自動計算と評価ランク
-  - Shannon多様度指数 H'
-  - Simpson多様度指数 1−D
-  - Pielou均等度 J'
-  - Berger-Parker優占度 d
-- **📋 生データ表示** — 全サンプルの門レベル相対存在比（%）
-- **📚 参照データソース** — EMP等のオープンアクセス論文リスト
+- [Chart.js](https://www.chartjs.org/) 4.4.1（MIT）
+- [Leaflet](https://leafletjs.com/) 1.9.4（BSD-2-Clause）／地図の絵 © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright)（ODbL）
+- 文字：Noto Sans JP・Source Code Pro（SIL Open Font License、Google Fonts）
 
----
+プログラムは MIT License です。
 
-## サンプリング地点 / Sampling Sites
+## 更新の記録
 
-| 地点名 | 英名 | 場所 | pH | 有機物 | 環境タイプ |
-|--------|------|------|-----|--------|-----------|
-| 森林土壌 | Forest Soil | 秩父・奥武蔵 | 4.8 | 12.3% | ブナ・コナラ混交林 |
-| 水田土壌 | Paddy Soil | 入間市・谷戸田 | 6.2 | 8.7% | 谷戸地形の湛水水田 |
-| 狭山丘陵 | Sayama Hills | 所沢 | 5.6 | 9.8% | コナラ・クヌギ里山雑木林 |
-| 斜面土壌 | Slope Soil | 飯能・山間部 | 5.3 | 6.2% | 急傾斜の崩積土 |
-| 比企丘陵 | Hiki Hills | 比企郡 | 5.8 | 10.1% | 二次林・草地境界の里山混合土壌 |
+- 2026-10-01：中身を点検して改訂。数値が仮のデータであることを画面の冒頭とこの説明に明記。根拠のない「評価（高い・低い）」を外し、指数の説明を門の単位に合わせて直した。細菌の門に現行の学名を併記し、アーキア（Euryarchaeota）を細菌と区別。地形との相関について言えることと言えないことを追加。参考資料の書誌を確かめて直した。スマホ表示を整えた。
 
 ---
 
-## 使用データ / Data Sources
-
-| データソース | 概要 | ライセンス |
-|-------------|------|-----------|
-| [Earth Microbiome Project (EMP)](https://earthmicrobiome.org/) | 27,000+環境サンプルの16S rRNAメタ解析 | CC BY 4.0 |
-| [Thompson et al. 2017](https://doi.org/10.1038/nature24621) *Nature* | EMP Release 1 — 地球規模の微生物多様性 | Open Access |
-| [Delgado-Baquerizo et al. 2018](https://doi.org/10.1126/science.aap9516) *Science* | GlobalSoilBiome — 全球土壌細菌多様性 | Open Access |
-| [EMP500 / Shaffer et al. 2022](https://doi.org/10.1038/s41564-022-01266-x) *Nat Microbiology* | 880サンプルのマルチオミクス解析 | Open Access |
-| [MicrobeAtlas 2026](https://microbeatlas.org/) *Cell* | 2,390,937サンプルの統合DB | Open Access |
-| [SMAG Catalogue / Ma et al. 2023](https://doi.org/10.1038/s41467-023-43000-z) *Nat Commun* | 3,304土壌メタゲノムから40,039 MAGs | CC BY 4.0 |
-
----
-
-## 技術スタック / Tech Stack
-
-```
-HTML / CSS / Vanilla JavaScript（フレームワーク不使用）
-├── Chart.js 4.4.1     — 積み上げ棒グラフ・レーダーチャート
-├── Leaflet 1.9.4      — インタラクティブマップ
-└── Google Fonts       — Zen Kaku Gothic New / Source Code Pro / Noto Sans JP
-```
-
----
-
-## ローカルで開く / Local Usage
-
-```bash
-git clone https://github.com/mitsulab/soil-metagenome-dashboard.git
-cd soil-metagenome-dashboard
-# ブラウザで index.html を開くだけ
-open index.html
-```
-
-サーバー不要。`index.html` をブラウザで直接開くだけで動作します。  
-No server required — open `index.html` directly in your browser.
-
----
-
-## 今後の展望 / Roadmap
-
-- [ ] 実際のeDNAサンプリングデータへの差し替え（岸田んぼ・六道山公園等）
-- [ ] Qualium（土壌生態系シミュレーター）との統合
-- [ ] 時系列データ対応（季節変動の可視化）
-- [ ] 草堆肥・有機資材施用前後の比較モジュール
-- [ ] 土壌医診断スコアとの照合インターフェース
-
----
-
-## ライセンス / License
-
-MIT License © 2026
-
----
-
-<div align="center">
-土壌メタゲノム解析 — mitsulab / 醸す谷 Vallis Fermenti<br>
-<em>「土を診る」から「土を醸す」へ</em>
-</div>
-
-🌱 醸す谷 / Vallis Fermenti — 有機農業×有機土木×発酵の統合フレームワーク
-🧪 Qualium — 土壌生態系センシング・可視化システム
-📝 note @mitsulab — 実践記録・思想論考
+© 2026 mitsulab ／ https://mitsulab.jp

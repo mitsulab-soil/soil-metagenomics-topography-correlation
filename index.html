@@ -3,374 +3,371 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>土壌メタゲノム解析 — mitsulab</title>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Source+Code+Pro:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<title>土の微生物の顔ぶれ ── 埼玉の五つの土を見くらべる｜mitsulab</title>
+<meta name="description" content="土の中の細菌・アーキアと菌類を「門」の単位で見くらべ、多様度指数の読み方を学ぶ教材。数値は説明用の仮のデータで、実際に採取・測定したものではありません。">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-:root{--bg:#070b12;--bg2:rgba(255,255,255,0.02);--bg3:rgba(255,255,255,0.04);--bdr:rgba(255,255,255,0.06);--t1:#e4e8ed;--t2:rgba(255,255,255,0.55);--t3:rgba(255,255,255,0.28);--blue:#2a9cc5;--green:#5fad56;--amber:#d9952a;--rose:#bf4d6a;--violet:#7b5ea7;--teal:#3aafa9;--red:#d45454}
+:root{
+  --bg:#0c1014;--card:#141a20;--card2:#1a2129;--bdr:#26303a;
+  --t1:#e6eaee;--t2:#b3bcc5;--t3:#8a96a2;
+  --blue:#4fb3d9;--green:#79c06f;--amber:#e3a94a;--rose:#d9718a;--violet:#a08bd0;--teal:#55c2bc;
+  --warn-bg:#2a2112;--warn-bd:#6b5424;
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--t1);font-family:'Noto Sans JP','Zen Kaku Gothic New',sans-serif;line-height:1.7}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--t1);font-family:'Noto Sans JP',sans-serif;font-size:15px;line-height:1.85;overflow-x:hidden}
+a{color:var(--blue)}
 .mono{font-family:'Source Code Pro',monospace}
-.hdr{padding:32px 36px 24px;border-bottom:1px solid var(--bdr);background:linear-gradient(180deg,rgba(42,156,197,0.05) 0%,transparent 100%);position:relative}
-.hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--green),var(--amber),var(--rose))}
-.hdr h1{font-size:24px;font-weight:900;letter-spacing:-0.02em}
-.hdr .sub{font-size:11px;color:var(--t3);letter-spacing:0.08em;font-family:'Source Code Pro',monospace;margin-top:2px}
-.badge{display:inline-flex;align-items:center;gap:5px;background:rgba(42,156,197,0.12);border:1px solid rgba(42,156,197,0.3);border-radius:16px;padding:3px 12px;font-size:11px;font-weight:700;color:var(--blue);font-family:'Source Code Pro',monospace;margin-left:10px;vertical-align:middle}
-.wrap{max-width:1320px;margin:0 auto;padding:24px 28px}
-.sec-title{font-size:15px;font-weight:900;margin-bottom:16px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.sec-title .jp{color:var(--t1)}
-.sec-title .en{font-family:'Source Code Pro',monospace;font-size:11px;color:var(--t3);font-weight:500}
-.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;padding:22px;margin-bottom:20px;overflow:hidden}
-.map-grid{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
-@media(max-width:900px){.map-grid{grid-template-columns:1fr}}
-#leafletMap{height:420px;border-radius:10px;z-index:1}
-.map-legend-item{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:8px;margin-bottom:4px;border:1px solid transparent}
-.map-legend-item:hover{background:var(--bg3);border-color:var(--bdr)}
-.map-legend-dot{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);flex-shrink:0;margin-top:3px}
-.tg{display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid var(--bdr);background:rgba(0,0,0,0.3)}
-.tg button{padding:7px 16px;border:none;cursor:pointer;font-size:12px;font-weight:700;background:transparent;color:var(--t2);font-family:'Noto Sans JP',sans-serif;transition:all 0.2s}
-.tg button.on{background:rgba(42,156,197,0.2);color:#7dd3fc}
-.chart-box{position:relative}
-.cmp-table{width:100%;border-collapse:collapse;font-size:12px}
-.cmp-table th{padding:9px 7px;text-align:left;border-bottom:2px solid rgba(255,255,255,0.1);font-size:10px;color:var(--t3);font-weight:700;letter-spacing:0.04em;white-space:nowrap;position:sticky;top:0;background:var(--bg)}
-.cmp-table td{padding:6px 7px;border-bottom:1px solid rgba(255,255,255,0.03);white-space:nowrap}
-.cmp-table tr:hover td{background:rgba(255,255,255,0.02)}
-.cmp-table .val{text-align:right;font-family:'Source Code Pro',monospace;font-weight:600;font-size:11px}
-.highlight-max{color:var(--amber)!important;font-weight:800!important}
-.div-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:18px}
-.div-card{padding:16px;background:rgba(0,0,0,0.25);border-radius:10px;border:1px solid var(--bdr)}
-.div-card .label{font-size:11px;color:var(--t2);font-weight:700;margin-bottom:2px}
-.div-card .formula{font-family:'Source Code Pro',monospace;font-size:10px;color:var(--t3);margin:6px 0;padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:6px;border-left:2px solid var(--violet)}
-.hbar-row{display:flex;align-items:center;gap:10px;padding:3px 0}
-.hbar-name{width:80px;font-size:11px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hbar-track{flex:1;height:7px;background:rgba(255,255,255,0.04);border-radius:4px;overflow:hidden}
-.hbar-fill{height:100%;border-radius:4px;transition:width 0.6s ease}
-.hbar-val{width:50px;font-size:11px;font-weight:700;font-family:'Source Code Pro',monospace;text-align:right}
-.rating-box{display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(0,0,0,0.3);border-radius:12px}
-.raw-scroll{max-height:400px;overflow:auto}
-.raw-table{width:100%;border-collapse:collapse;font-size:11px;font-family:'Source Code Pro',monospace}
-.raw-table th{padding:8px 6px;text-align:left;border-bottom:2px solid rgba(255,255,255,0.1);font-size:10px;color:var(--t3);position:sticky;top:0;background:var(--bg)}
-.raw-table td{padding:5px 6px;border-bottom:1px solid rgba(255,255,255,0.02)}
-.raw-table tr:nth-child(even) td{background:rgba(255,255,255,0.01)}
-.ref-table{width:100%;border-collapse:collapse;font-size:12px}
-.ref-table th{text-align:left;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.1);color:var(--t3);font-weight:700;font-size:10px;letter-spacing:0.06em}
-.ref-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--t2)}
-.ref-table a{color:var(--blue);text-decoration:none}
-.ref-table a:hover{text-decoration:underline}
-.oss{display:inline-block;background:rgba(95,173,86,0.12);border:1px solid rgba(95,173,86,0.25);border-radius:5px;padding:2px 8px;font-size:9px;font-weight:700;color:var(--green);font-family:'Source Code Pro',monospace}
-.footer{text-align:center;padding:24px 0 36px;font-size:10px;color:var(--t3);line-height:1.8}
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:4px}
-/* Leaflet dark tiles */
-.leaflet-tile-pane{filter:brightness(0.6) invert(1) contrast(1.8) hue-rotate(200deg) saturate(0.3) brightness(0.7)}
-.leaflet-control-attribution{font-size:8px!important;background:rgba(0,0,0,0.5)!important;color:rgba(255,255,255,0.4)!important}
-.leaflet-control-attribution a{color:rgba(255,255,255,0.5)!important}
+header{padding:28px 16px 20px;border-bottom:1px solid var(--bdr);background:linear-gradient(180deg,#121a21 0%,var(--bg) 100%)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+header .wrap{padding:0}
+.kicker{font-size:12px;color:var(--t3);letter-spacing:.08em}
+h1{font-size:clamp(21px,5vw,28px);font-weight:700;line-height:1.45;margin:4px 0 6px}
+.en{font-size:12.5px;color:var(--t3);font-family:'Source Code Pro',monospace;line-height:1.5}
+.lead{color:var(--t2);margin-top:12px;max-width:46em}
+.notice{margin:16px 0 0;padding:12px 14px;border:1px solid var(--warn-bd);background:var(--warn-bg);border-radius:10px;font-size:14px;color:#f0dcb4}
+.notice b{color:#ffd88a;font-weight:700}
+main{padding:20px 0 8px}
+section.card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:20px 18px;margin:0 0 18px}
+h2{font-size:18px;font-weight:700;line-height:1.5;margin-bottom:4px}
+h2 + .en{margin-bottom:14px}
+h3{font-size:15px;font-weight:700;margin:16px 0 6px}
+p + p{margin-top:.6em}
+.muted{color:var(--t2)}
+.small{font-size:13px;color:var(--t3)}
+ol.how{padding-left:1.4em;color:var(--t2)} ol.how li{margin:.2em 0}
+.tg{display:inline-flex;border-radius:10px;overflow:hidden;border:1px solid var(--bdr);background:#0e1318;position:sticky;top:8px;z-index:500}
+.tg button{padding:9px 16px;border:none;cursor:pointer;font-size:14px;font-weight:500;background:transparent;color:var(--t2);font-family:inherit}
+.tg button.on{background:#1f3b4a;color:#bfe9fb}
+.toolbar{margin:0 0 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.map-grid{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+@media(max-width:860px){.map-grid{grid-template-columns:1fr}}
+#leafletMap{height:380px;border-radius:10px;z-index:1}
+@media(max-width:520px){#leafletMap{height:300px}}
+.site{display:flex;gap:10px;padding:8px 6px;border-bottom:1px solid var(--bdr)}
+.site:last-child{border-bottom:none}
+.dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:7px;border:2px solid rgba(255,255,255,.6)}
+.site .nm{font-weight:700}
+.site .meta{font-size:13px;color:var(--t3);line-height:1.6}
+.chart-box{position:relative;height:420px}
+@media(max-width:520px){.chart-box{height:460px}}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;font-size:13.5px;width:100%}
+th,td{padding:7px 8px;border-bottom:1px solid var(--bdr);text-align:left;vertical-align:top}
+th{font-size:12.5px;color:var(--t3);font-weight:500;white-space:nowrap}
+td.v,th.v{text-align:right;font-family:'Source Code Pro',monospace;white-space:nowrap}
+td.max{color:var(--amber)}
+.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.tx{white-space:nowrap}
+.tx small{display:block;color:var(--t3);font-size:12px;font-family:'Source Code Pro',monospace}
+.div-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;margin-top:14px}
+.div-card{padding:14px;background:var(--card2);border-radius:10px;border:1px solid var(--bdr)}
+.div-card .label{font-weight:700;font-size:14.5px}
+.formula{font-family:'Source Code Pro',monospace;font-size:13px;color:var(--t2);margin:8px 0 10px;padding:8px 10px;background:#0f1418;border-radius:6px;border-left:3px solid var(--violet);line-height:1.7}
+.hbar{display:grid;grid-template-columns:5.5em 1fr 4.2em;align-items:center;gap:8px;font-size:13px;padding:2px 0}
+.hbar .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track{height:8px;background:#0f1418;border-radius:4px;overflow:hidden}
+.fill{height:100%;border-radius:4px}
+.hbar .v{font-family:'Source Code Pro',monospace;text-align:right}
+.ref li{margin:.5em 0;color:var(--t2)}
+.ref{padding-left:1.2em}
+.tag{display:inline-block;font-size:11.5px;padding:0 7px;border-radius:5px;border:1px solid #3d5a3a;color:#a8d89f;margin-left:4px;white-space:nowrap}
+footer{text-align:center;padding:20px 16px 40px;font-size:13px;color:var(--t3);line-height:1.9}
+.leaflet-tile-pane{filter:brightness(.62) invert(1) contrast(1.6) hue-rotate(200deg) saturate(.3) brightness(.75)}
+.leaflet-control-attribution{font-size:11px!important}
 </style>
 </head>
 <body>
 
-<div class="hdr">
-  <h1>土壌メタゲノム解析<span class="badge">⬡ mitsulab</span></h1>
-  <div class="sub">SOIL METAGENOME ANALYSIS — 醸す谷 / Vallis Fermenti Project</div>
-  <div style="margin-top:8px;font-size:11px;color:var(--t2);line-height:1.6">
-    ⚠️ 本データは Earth Microbiome Project 等のオープンデータにおける各環境タイプの典型的な門レベル組成パターンに基づく<strong style="color:var(--amber)">シミュレーション値</strong>です。各地点で実際にサンプリング・シーケンシングを実施したものではありません。
+<header>
+  <div class="wrap">
+    <div class="kicker">mitsulab ／ 土の教材</div>
+    <h1>土の微生物の顔ぶれ<br>── 埼玉の五つの土を見くらべる</h1>
+    <div class="en">Who lives in the soil? Comparing microbial phyla across five soil types in Saitama — a teaching dashboard</div>
+    <p class="lead">土の中には、目に見えない細菌・アーキア（古細菌）・菌類がたくさん暮らしています。その顔ぶれを DNA の配列から調べる方法（アンプリコン解析やメタゲノム解析）では、結果をまず「門」という大きなまとまりで示すことがよくあります。このページでは、森・水田・里山などの土で門の割合がどう違いうるかを見くらべ、多様度指数の読み方を学びます。</p>
+    <div class="notice"><b>この数値は、説明のために作った仮のデータです（実測ではありません）。</b>埼玉の五つの場所で土を採ったり、DNA を調べたりはしていません。文献で知られる大まかな傾向（たとえば酸性の森の土ではアシドバクテリア門が多め、水田ではメタンをつくるアーキアが見つかりやすい）に合わせて、手で置いた値です。特定のデータベースから取り出した値でもありません。研究や報告の根拠には使わないでください。</div>
   </div>
-</div>
+</header>
+
 <div class="wrap">
+<main>
 
-  <div style="margin-bottom:18px"><div class="tg" id="domTg"></div></div>
+  <section class="card">
+    <h2>使い方</h2>
+    <ol class="how">
+      <li>上の切り替えで「細菌・アーキア」と「菌類」を選びます。</li>
+      <li>地図の点を押すと、その土の想定（pH・有機物など）が出ます。</li>
+      <li>棒グラフと表で門の割合を見くらべ、下の多様度指数で「偏り」と「ばらつき」を数で確かめます。</li>
+      <li>最後に「地形との関係を本当に調べるには」を読んでください。この仮のデータで言えること・言えないことをまとめています。</li>
+    </ol>
+  </section>
 
-  <!-- Map -->
-  <div class="card" id="mapCard">
-    <div class="sec-title"><span class="jp">📍 埼玉県内サンプリング地点</span><span class="en">Sampling Sites in Saitama Prefecture</span></div>
+  <div class="toolbar"><div class="tg" id="domTg" role="group" aria-label="対象の切り替え"></div></div>
+
+  <section class="card">
+    <h2>五つの土（場所の目安）</h2>
+    <div class="en">Five hypothetical soils — approximate locations only</div>
     <div class="map-grid">
-      <div id="leafletMap"></div>
+      <div id="leafletMap" aria-label="地図"></div>
       <div id="mapLegend"></div>
     </div>
-  </div>
+    <p class="small" style="margin-top:10px">点は地名のおおよその位置で、採取地点ではありません。pH・有機物・水分・深さも、その土の種類によくある値を想定として置いたものです。</p>
+  </section>
 
-  <!-- Stacked bar -->
-  <div class="card">
-    <div class="sec-title">
-      <span class="jp" id="cmpTitle">🧫 細菌門組成（さいきんもんそせい）— 全サンプル一覧比較</span>
-      <span class="en" id="cmpTitleEn">Bacterial Phylum Composition — All Samples</span>
-    </div>
-    <div class="chart-box" style="height:380px"><canvas id="stackedChart"></canvas></div>
-  </div>
+  <section class="card">
+    <h2 id="cmpTitle">門ごとの割合</h2>
+    <div class="en" id="cmpTitleEn">Relative abundance by phylum</div>
+    <div class="chart-box"><canvas id="stackedChart"></canvas></div>
+    <p class="small" style="margin-top:8px">割合は「読み取れた配列のうち何％がその門に当たったか」（相対存在比）です。細胞の数や重さの割合とは同じではありません。</p>
+  </section>
 
-  <!-- Comparison Table -->
-  <div class="card">
-    <div class="sec-title">
-      <span class="jp" id="tblTitle">📊 相対存在比（そうたいそんざいひ）一覧</span>
-      <span class="en" id="tblTitleEn">Relative Abundance — 各分類群の存在割合 (%)</span>
-    </div>
-    <div style="overflow-x:auto" id="compTableWrap"></div>
-  </div>
+  <section class="card">
+    <h2 id="tblTitle">相対存在比の一覧（％）</h2>
+    <div class="en">Table — relative abundance (%), highest value per row in amber</div>
+    <div class="scroll-x" id="compTableWrap"></div>
+  </section>
 
-  <!-- Radar -->
-  <div class="card">
-    <div class="sec-title"><span class="jp">🕸️ サンプル間比較レーダー</span><span class="en">Cross-sample Radar</span></div>
-    <div class="chart-box" style="height:380px"><canvas id="radarChart"></canvas></div>
-  </div>
+  <section class="card">
+    <h2>主な門のくらべ（レーダー）</h2>
+    <div class="en">Radar — major phyla across soils</div>
+    <div class="chart-box" style="height:400px"><canvas id="radarChart"></canvas></div>
+  </section>
 
-  <!-- Diversity -->
-  <div class="card">
-    <div class="sec-title"><span class="jp">🧬 多様性評価（たようせいひょうか）</span><span class="en">Diversity Assessment — 指標・数式・評価</span></div>
+  <section class="card">
+    <h2>多様度指数を読む</h2>
+    <div class="en">Diversity indices at the phylum level</div>
+    <p class="muted">ここでの指数は「門」の単位で計算しています。門は、とても大きなまとまりです（動物でいえば「脊索動物門」に人も魚も入るくらい）。研究では、もっと細かい単位（属・種、または配列の型）で計算するのがふつうで、その値は門の単位よりずっと大きくなります。ここでの数値は、指数の仕組みを学ぶためのものとして見てください。「その他」も一つのまとまりとして数に入れています。</p>
     <div id="diversityContent"></div>
-  </div>
+  </section>
 
-  <!-- Raw Data -->
-  <div class="card">
-    <div class="sec-title"><span class="jp">📋 使用データ（生データ表示）</span><span class="en">Raw Data — 門レベル相対存在比 (%)</span></div>
-    <div style="font-size:11px;color:var(--t2);margin-bottom:14px">以下は本ダッシュボードで使用している全データです。EMP等のオープンデータに基づくシミュレーション値であり、各環境タイプにおける典型的な門レベル組成比（%）を示しています。</div>
+  <section class="card">
+    <h2>地形との関係を本当に調べるには</h2>
+    <div class="en">What it would take to test a link with topography</div>
+    <p>このページの五つの土は、森・水田・丘陵・斜面と、地形や使われ方が違う場所を想定しています。けれども、<strong>この仮のデータから「地形が微生物の顔ぶれを決める」とは言えません</strong>。理由は三つあります。</p>
+    <ol class="how" style="margin-top:6px">
+      <li>値が実測ではないこと。</li>
+      <li>場所が五つで、各場所に一つずつしかないこと。同じ場所の中のばらつきが分からないと、場所どうしの差が偶然かどうかを判断できません。</li>
+      <li>地形は、pH・水分・植生・土地の使われ方と一緒に変わること。土の細菌の顔ぶれをいちばんよく説明するのは pH だという報告が多く（Fierer &amp; Jackson 2006; Lauber ほか 2009）、地形だけの効き目を切り分けるには工夫が要ります。また、相関が見つかっても、それだけで原因とは言えません。</li>
+    </ol>
+    <h3>調べるとしたら</h3>
+    <p class="muted">場所ごとに複数の地点から同じ深さで採り、DNA を同じ方法で調べる。地形は国土地理院の数値標高モデルなどから標高・傾斜・集水のしやすさを計算し、pH・水分なども測る。そのうえで、群集どうしの違い（距離）と環境の違いの関係を、ほかの要因の影響もふまえて調べる（たとえば PERMANOVA やマンテル検定など）。この先は、実際の採取ができたときに取り組みたい課題です。</p>
+  </section>
+
+  <section class="card">
+    <h2>表示しているデータの全部</h2>
+    <div class="en">All values used on this page (hypothetical)</div>
+    <p class="small" style="margin-bottom:10px">このページで使っている数値のすべてです。どれも説明用の仮の値です。</p>
     <div id="rawDataSection"></div>
-  </div>
+  </section>
 
-  <!-- Ref -->
-  <div class="card">
-    <div class="sec-title"><span class="jp">📚 参照データソース（環境DNA関連のみ）</span><span class="en">Environmental DNA Data Sources</span></div>
-    <div id="refSection"></div>
-  </div>
+  <section class="card">
+    <h2>門の名前について</h2>
+    <div class="en">Notes on names</div>
+    <ul class="ref">
+      <li>細菌の門の学名は 2021 年に正式な名前が定められ、たとえば Proteobacteria は Pseudomonadota、Firmicutes は Bacillota となりました（Oren &amp; Garrity 2021）。表では新しい名前と、論文でよく見る旧い名前を並べています。</li>
+      <li>Euryarchaeota（ユーリアーキオータ）は細菌ではなくアーキア（古細菌）です。細菌と同じ遺伝子（16S rRNA）で一緒に調べられることが多いので、同じ表に入れています。水田ではメタンをつくるアーキアが見つかりやすいことが知られています。</li>
+      <li>WPS-2 は、培養されていない「候補門」です（Candidatus Eremiobacterota とも呼ばれます）。</li>
+      <li>グロムス菌類（アーバスキュラー菌根菌）は、分類の体系によっては独立した門ではなく、ケカビ門の中の亜門として扱われます。ここでは見やすさのため別に並べています。</li>
+    </ul>
+  </section>
 
-  <div class="footer">土壌メタゲノム解析 — mitsulab / 醸す谷 Vallis Fermenti<br>本ダッシュボードはオープンソースです（MIT License）。<br>© 2026 mitsulab</div>
+  <section class="card">
+    <h2>参考にした資料と、ライセンス</h2>
+    <div class="en">References and licenses</div>
+    <p class="small" style="margin-bottom:6px">次の資料は、土の微生物の大まかな傾向を知るために参照したものです。このページの数値は、これらの資料から直接取り出したものではありません。</p>
+    <ul class="ref">
+      <li>Earth Microbiome Project（地球の微生物を同じ方法で調べる国際プロジェクト） <a href="https://earthmicrobiome.org/" target="_blank" rel="noopener">earthmicrobiome.org</a></li>
+      <li>Thompson ほか (2017) A communal catalogue reveals Earth's multiscale microbial diversity. <i>Nature</i> 551: 457–463. 97 の研究・27,751 試料。<a href="https://doi.org/10.1038/nature24621" target="_blank" rel="noopener">doi:10.1038/nature24621</a><span class="tag">CC BY 4.0</span></li>
+      <li>Delgado-Baquerizo ほか (2018) A global atlas of the dominant bacteria found in soil. <i>Science</i> 359: 320–325. 6 大陸 237 地点の土。<a href="https://doi.org/10.1126/science.aap9516" target="_blank" rel="noopener">doi:10.1126/science.aap9516</a></li>
+      <li>Shaffer ほか (2022) Standardized multi-omics of Earth's microbiomes reveals microbial and metabolite diversity. <i>Nature Microbiology</i> 7: 2128–2150.（EMP500） <a href="https://doi.org/10.1038/s41564-022-01266-x" target="_blank" rel="noopener">doi:10.1038/s41564-022-01266-x</a></li>
+      <li>Ma ほか (2023) A genomic catalogue of soil microbiomes boosts mining of biodiversity and genetic resources. <i>Nature Communications</i> 14: 7318. 3,304 の土のメタゲノムから 40,039 のゲノム（SMAG）。<a href="https://doi.org/10.1038/s41467-023-43000-z" target="_blank" rel="noopener">doi:10.1038/s41467-023-43000-z</a><span class="tag">CC BY 4.0</span></li>
+      <li>Rodrigues, Tackmann ほか (2026) The MicrobeAtlas database: Global trends and insights into Earth's microbial ecosystems. <i>Cell</i>. 約 240 万の微生物群集データ。<a href="https://microbeatlas.org/" target="_blank" rel="noopener">microbeatlas.org</a></li>
+      <li>Fierer &amp; Jackson (2006) The diversity and biogeography of soil bacterial communities. <i>PNAS</i> 103: 626–631. <a href="https://doi.org/10.1073/pnas.0507535103" target="_blank" rel="noopener">doi:10.1073/pnas.0507535103</a></li>
+      <li>Lauber ほか (2009) Pyrosequencing-based assessment of soil pH as a predictor of soil bacterial community structure at the continental scale. <i>Applied and Environmental Microbiology</i> 75: 5111–5120. <a href="https://doi.org/10.1128/AEM.00335-09" target="_blank" rel="noopener">doi:10.1128/AEM.00335-09</a></li>
+      <li>Oren &amp; Garrity (2021) Valid publication of the names of forty-two phyla of prokaryotes. <i>International Journal of Systematic and Evolutionary Microbiology</i> 71: 005056. <a href="https://doi.org/10.1099/ijsem.0.005056" target="_blank" rel="noopener">doi:10.1099/ijsem.0.005056</a></li>
+    </ul>
+    <h3>使っている道具</h3>
+    <ul class="ref">
+      <li>地図：<a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet</a> 1.9.4（BSD-2-Clause）、地図の絵 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>（ODbL）</li>
+      <li>グラフ：<a href="https://www.chartjs.org/" target="_blank" rel="noopener">Chart.js</a> 4.4.1（MIT）</li>
+      <li>文字：Noto Sans JP・Source Code Pro（SIL Open Font License、Google Fonts）</li>
+    </ul>
+  </section>
+
+</main>
 </div>
 
-<script>
-// ══════ JAPANESE PHYLUM NAME MAPPING ══════
-const JP={
-  // Bacteria
-  Proteobacteria:"プロテオバクテリア門",Acidobacteria:"アシドバクテリア門",Actinobacteria:"アクチノバクテリア門",
-  Verrucomicrobia:"ウェルコミクロビア門",Planctomycetes:"プランクトミケス門",Bacteroidetes:"バクテロイデス門",
-  Firmicutes:"フィルミクテス門",Chloroflexi:"クロロフレクシ門",Gemmatimonadetes:"ゲンマティモナス門",
-  "WPS-2":"WPS-2門",Nitrospirae:"ニトロスピラ門",Euryarchaeota:"ユリアーキオータ門",
-  Spirochaetes:"スピロヘータ門",Armatimonadetes:"アルマティモナス門",
-  "Deinococcus-Thermus":"デイノコッカス門",
-  // Fungi
-  Basidiomycota:"担子菌門（たんしきんもん）",Ascomycota:"子嚢菌門（しのうきんもん）",
-  Mortierellomycota:"モルティエレラ門",Mucoromycota:"ケカビ門",
-  Glomeromycota:"グロムス門（アーバスキュラー菌根菌）",Chytridiomycota:"ツボカビ門",
-  Rozellomycota:"ロゼラ門",
-  Others:"その他"
-};
-function jpName(p){return JP[p]||p}
-function biName(p){const j=JP[p];return j?j+" / "+p:p}
+<footer>
+  土の微生物の顔ぶれ ── 埼玉の五つの土を見くらべる<br>
+  プログラムは MIT License で公開しています。数値は説明用の仮のデータです。<br>
+  © 2026 mitsulab ／ <a href="https://mitsulab.jp" target="_blank" rel="noopener">https://mitsulab.jp</a>
+</footer>
 
-// ══════ SAMPLE DATA ══════
+<script>
+// ── 門の名前：[日本語, 現行の学名, 旧い学名（なければ空）] ──
+const NAMES={
+  Proteobacteria:["シュードモナス門（プロテオバクテリア）","Pseudomonadota","Proteobacteria"],
+  Acidobacteria:["アシドバクテリア門","Acidobacteriota","Acidobacteria"],
+  Actinobacteria:["放線菌門","Actinomycetota","Actinobacteria"],
+  Verrucomicrobia:["ウェルコミクロビウム門","Verrucomicrobiota","Verrucomicrobia"],
+  Planctomycetes:["プランクトミケス門","Planctomycetota","Planctomycetes"],
+  Bacteroidetes:["バクテロイデス門","Bacteroidota","Bacteroidetes"],
+  Firmicutes:["バシラス門（フィルミクテス）","Bacillota","Firmicutes"],
+  Chloroflexi:["クロロフレクサス門","Chloroflexota","Chloroflexi"],
+  Gemmatimonadetes:["ゲンマティモナス門","Gemmatimonadota","Gemmatimonadetes"],
+  "WPS-2":["WPS-2（候補門）","Ca. Eremiobacterota","WPS-2"],
+  Nitrospirae:["ニトロスピラ門","Nitrospirota","Nitrospirae"],
+  Euryarchaeota:["ユーリアーキオータ（アーキア）","Euryarchaeota",""],
+  Spirochaetes:["スピロヘータ門","Spirochaetota","Spirochaetes"],
+  Armatimonadetes:["アルマティモナス門","Armatimonadota","Armatimonadetes"],
+  Basidiomycota:["担子菌門","Basidiomycota",""],
+  Ascomycota:["子嚢菌門","Ascomycota",""],
+  Mortierellomycota:["モルティエレラ門","Mortierellomycota",""],
+  Mucoromycota:["ケカビ門","Mucoromycota",""],
+  Glomeromycota:["グロムス菌類（アーバスキュラー菌根菌）","Glomeromycota",""],
+  Chytridiomycota:["ツボカビ門","Chytridiomycota",""],
+  Rozellomycota:["ロゼラ門","Rozellomycota",""],
+  Others:["その他","Others",""]
+};
+const jp=p=>(NAMES[p]||[p])[0];
+const txCell=p=>{const n=NAMES[p];if(!n)return p;const sci=n[2]&&n[2]!==n[1]?`${n[1]}（旧 ${n[2]}）`:n[1];return `${n[0]}<small>${sci}</small>`};
+
+// ── 説明用の仮のデータ（実測ではない） ──
 const S={
-  "森林土壌":{en:"Forest Soil",loc:"秩父・奥武蔵",locEn:"Chichibu",lat:35.99,lng:139.08,col:"#2a9cc5",pH:4.8,om:12.3,moist:45,depth:"0–15cm",desc:"ブナ・コナラ混交林の褐色森林土",
+  "森の土":{en:"Forest",loc:"秩父のあたり",lat:35.99,lng:139.08,col:"#4fb3d9",pH:4.8,om:12.3,moist:45,depth:"0–15 cm",desc:"落葉広葉樹林の褐色森林土を想定",
     bact:{Proteobacteria:28.4,Acidobacteria:22.1,Actinobacteria:14.6,Verrucomicrobia:8.3,Planctomycetes:6.7,Bacteroidetes:5.2,Firmicutes:3.8,Chloroflexi:3.1,Gemmatimonadetes:2.4,"WPS-2":1.9,Nitrospirae:1.2,Others:2.3},
     fung:{Basidiomycota:38.2,Ascomycota:32.5,Mortierellomycota:12.1,Mucoromycota:6.3,Glomeromycota:4.8,Rozellomycota:2.9,Others:3.2}},
-  "水田土壌":{en:"Paddy Soil",loc:"入間市・谷戸田",locEn:"Iruma",lat:35.84,lng:139.39,col:"#d9952a",pH:6.2,om:8.7,moist:72,depth:"0–20cm",desc:"谷戸地形の湛水水田",
+  "水田の土":{en:"Paddy",loc:"入間市のあたり",lat:35.84,lng:139.39,col:"#e3a94a",pH:6.2,om:8.7,moist:72,depth:"0–20 cm",desc:"谷あいの、水を張る田んぼを想定",
     bact:{Proteobacteria:34.2,Firmicutes:15.3,Bacteroidetes:12.8,Chloroflexi:8.9,Actinobacteria:7.4,Acidobacteria:5.6,Planctomycetes:4.2,Verrucomicrobia:3.8,Euryarchaeota:3.1,Nitrospirae:2.4,Spirochaetes:1.2,Others:1.1},
     fung:{Ascomycota:45.3,Basidiomycota:18.7,Mucoromycota:11.2,Chytridiomycota:9.4,Mortierellomycota:6.8,Glomeromycota:5.1,Others:3.5}},
-  "狭山丘陵":{en:"Sayama Hills",loc:"所沢・狭山丘陵",locEn:"Tokorozawa",lat:35.77,lng:139.42,col:"#3aafa9",pH:5.6,om:9.8,moist:50,depth:"0–15cm",desc:"コナラ・クヌギ里山雑木林",
+  "狭山丘陵の土":{en:"Sayama Hills",loc:"所沢市・狭山丘陵のあたり",lat:35.77,lng:139.42,col:"#55c2bc",pH:5.6,om:9.8,moist:50,depth:"0–15 cm",desc:"コナラ・クヌギの雑木林を想定",
     bact:{Proteobacteria:29.8,Acidobacteria:18.2,Actinobacteria:16.1,Verrucomicrobia:7.5,Bacteroidetes:6.9,Planctomycetes:5.8,Firmicutes:5.1,Chloroflexi:4.0,Gemmatimonadetes:2.9,Nitrospirae:1.8,"WPS-2":1.2,Others:0.7},
     fung:{Ascomycota:35.4,Basidiomycota:30.1,Mortierellomycota:12.3,Glomeromycota:8.6,Mucoromycota:7.2,Rozellomycota:3.2,Others:3.2}},
-  "斜面土壌":{en:"Slope Soil",loc:"飯能・山間部",locEn:"Hanno",lat:35.86,lng:139.32,col:"#bf4d6a",pH:5.3,om:6.2,moist:32,depth:"0–10cm",desc:"急傾斜の崩積土",
+  "斜面の土":{en:"Slope",loc:"飯能市のあたり",lat:35.86,lng:139.32,col:"#d9718a",pH:5.3,om:6.2,moist:32,depth:"0–10 cm",desc:"急な斜面の、崩れて積もった土を想定",
     bact:{Proteobacteria:26.8,Acidobacteria:24.5,Actinobacteria:12.3,Chloroflexi:9.1,Verrucomicrobia:7.6,Planctomycetes:5.4,Bacteroidetes:4.2,Firmicutes:3.1,Gemmatimonadetes:2.8,"WPS-2":2.1,Armatimonadetes:1.2,Others:0.9},
     fung:{Basidiomycota:35.4,Ascomycota:30.8,Mortierellomycota:10.2,Mucoromycota:8.9,Glomeromycota:6.3,Rozellomycota:4.1,Others:4.3}},
-  "比企丘陵":{en:"Hiki Hills",loc:"比企丘陵",locEn:"Hiki",lat:36.01,lng:139.33,col:"#7b5ea7",pH:5.8,om:10.1,moist:48,depth:"0–15cm",desc:"二次林・草地境界の里山混合土壌",
+  "比企丘陵の土":{en:"Hiki Hills",loc:"比企丘陵のあたり",lat:36.01,lng:139.33,col:"#a08bd0",pH:5.8,om:10.1,moist:48,depth:"0–15 cm",desc:"林と草地の境目の土を想定",
     bact:{Proteobacteria:30.1,Acidobacteria:16.8,Actinobacteria:15.7,Verrucomicrobia:7.9,Bacteroidetes:7.4,Planctomycetes:6.1,Firmicutes:5.3,Chloroflexi:4.2,Gemmatimonadetes:2.8,Nitrospirae:1.9,"WPS-2":1.1,Others:0.7},
     fung:{Ascomycota:36.8,Basidiomycota:28.9,Mortierellomycota:11.7,Mucoromycota:7.5,Glomeromycota:8.4,Rozellomycota:3.2,Others:3.5}}
 };
-
-const BCOL={Proteobacteria:"#2a9cc5",Acidobacteria:"#a23b72",Actinobacteria:"#d9952a",Verrucomicrobia:"#bf4d6a",Planctomycetes:"#5c4a72",Bacteroidetes:"#3aafa9",Firmicutes:"#d45454",Chloroflexi:"#7b5ea7",Gemmatimonadetes:"#5fad56","WPS-2":"#8b7a2e",Nitrospirae:"#d4a373",Euryarchaeota:"#6a3fa0",Spirochaetes:"#1b998b",Armatimonadetes:"#4ecdc4",Others:"#777"};
-const FCOL={Basidiomycota:"#6a4c93",Ascomycota:"#2a9cc5",Mortierellomycota:"#8ac926",Mucoromycota:"#d45454",Glomeromycota:"#d9952a",Chytridiomycota:"#ff924c",Rozellomycota:"#c77dff",Others:"#999"};
+const BCOL={Proteobacteria:"#4fb3d9",Acidobacteria:"#c0558e",Actinobacteria:"#e3a94a",Verrucomicrobia:"#d9718a",Planctomycetes:"#8a76b0",Bacteroidetes:"#55c2bc",Firmicutes:"#e06a5a",Chloroflexi:"#a08bd0",Gemmatimonadetes:"#79c06f","WPS-2":"#b5a24a",Nitrospirae:"#d8b48a",Euryarchaeota:"#9b6fe0",Spirochaetes:"#2fb39f",Armatimonadetes:"#7fd8d2",Others:"#7d858c"};
+const FCOL={Basidiomycota:"#9b7fd0",Ascomycota:"#4fb3d9",Mortierellomycota:"#9ccc55",Mucoromycota:"#e06a5a",Glomeromycota:"#e3a94a",Chytridiomycota:"#f0956a",Rozellomycota:"#d29be8",Others:"#8d949a"};
 
 const keys=Object.keys(S);
-let dom="bact";
-let stackedChart=null,radarChart=null,leafletMap=null;
+let dom="bact",stackedChart=null,radarChart=null,leafletMap=null;
+const getData=(k,d)=>d==="bact"?S[k].bact:S[k].fung;
+const colMap=d=>d==="bact"?BCOL:FCOL;
+const allPhyla=d=>{const s=new Set();keys.forEach(k=>Object.keys(getData(k,d)).forEach(p=>s.add(p)));return[...s]};
+const sum=v=>v.reduce((a,b)=>a+b,0);
+const shannon=v=>{const t=sum(v);return -v.reduce((h,x)=>{const p=x/t;return p>0?h+p*Math.log(p):h},0)};
+const simpson=v=>{const t=sum(v);return 1-v.reduce((d,x)=>d+(x/t)**2,0)};
+const pielou=v=>shannon(v)/Math.log(v.length);
+const bergerParker=v=>Math.max(...v)/sum(v);
+const narrow=()=>window.matchMedia("(max-width:600px)").matches;
+const tc="#b3bcc5",gc="rgba(255,255,255,0.07)";
 
-function getData(k,d){return d==="bact"?S[k].bact:S[k].fung}
-function getColMap(d){return d==="bact"?BCOL:FCOL}
-function allPhyla(d){const s=new Set();keys.forEach(k=>Object.keys(getData(k,d)).forEach(p=>s.add(p)));return[...s]}
-function shannon(v){const t=v.reduce((a,b)=>a+b,0);return-v.reduce((h,x)=>{const p=x/t;return p>0?h+p*Math.log(p):h},0)}
-function simpson(v){const t=v.reduce((a,b)=>a+b,0);return 1-v.reduce((d,x)=>d+(x/t)**2,0)}
-function evenness(v){return shannon(v)/Math.log(v.length)}
-function bergerParker(v){return Math.max(...v)/v.reduce((a,b)=>a+b,0)}
-function divRating(h,s,e,r){let sc=0;if(h>2.2)sc+=2;else if(h>1.8)sc+=1;if(s>0.88)sc+=2;else if(s>0.82)sc+=1;if(e>0.85)sc+=2;else if(e>0.75)sc+=1;if(r>=11)sc+=2;else if(r>=8)sc+=1;if(sc>=7)return{label:"非常に高い",col:"#5fad56",emoji:"🌿"};if(sc>=5)return{label:"高い",col:"#2a9cc5",emoji:"🌱"};if(sc>=3)return{label:"中程度",col:"#d9952a",emoji:"🌾"};return{label:"低い",col:"#bf4d6a",emoji:"⚠️"}}
-
-// ══════ RENDER ══════
 function renderToggles(){
-  document.getElementById("domTg").innerHTML=[["bact","細菌 Bacteria"],["fung","真菌 Fungi"]].map(([k,l])=>
-    `<button class="${dom===k?'on':''}" onclick="dom='${k}';renderAll()">${l}</button>`).join("");
+  document.getElementById("domTg").innerHTML=[["bact","細菌・アーキア"],["fung","菌類"]].map(([k,l])=>
+    `<button type="button" class="${dom===k?'on':''}" aria-pressed="${dom===k}" onclick="dom='${k}';renderAll()">${l}</button>`).join("");
 }
 
 function renderMap(){
-  if(!leafletMap){
-    leafletMap=L.map('leafletMap',{zoomControl:true,attributionControl:true}).setView([35.9,139.3],10);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      attribution:'&copy; OpenStreetMap contributors',maxZoom:18
-    }).addTo(leafletMap);
-  }
-  // Clear existing markers
-  leafletMap.eachLayer(l=>{if(l instanceof L.CircleMarker||l instanceof L.Marker)leafletMap.removeLayer(l)});
-
+  if(leafletMap) return;
+  leafletMap=L.map('leafletMap',{scrollWheelZoom:false}).setView([35.9,139.27],10);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',maxZoom:18}).addTo(leafletMap);
   keys.forEach(k=>{
     const s=S[k];
-    const marker=L.circleMarker([s.lat,s.lng],{
-      radius:10,fillColor:s.col,color:"#fff",weight:2,fillOpacity:0.85
-    }).addTo(leafletMap);
-    marker.bindPopup(`<div style="font-family:'Noto Sans JP',sans-serif;font-size:13px;line-height:1.5;min-width:180px">
-      <strong style="font-size:14px">${k}</strong> <span style="color:#888">${s.en}</span><br>
-      📍 ${s.loc} / ${s.locEn}<br>
-      <span style="font-size:11px;color:#666">pH ${s.pH} | 有機物 ${s.om}% | 水分 ${s.moist}% | ${s.depth}</span><br>
-      <span style="font-size:11px;color:#888">${s.desc}</span>
-    </div>`);
-    // Pulsing ring
-    L.circleMarker([s.lat,s.lng],{radius:16,fillColor:"transparent",color:s.col,weight:1,opacity:0.4,fillOpacity:0}).addTo(leafletMap);
+    L.circleMarker([s.lat,s.lng],{radius:10,fillColor:s.col,color:"#fff",weight:2,fillOpacity:.9}).addTo(leafletMap)
+     .bindPopup(`<div style="font-family:'Noto Sans JP',sans-serif;font-size:13px;line-height:1.6;min-width:170px"><b>${k}</b>（${s.loc}）<br>${s.desc}<br><span style="color:#666">想定：pH ${s.pH}／有機物 ${s.om}%／水分 ${s.moist}%／深さ ${s.depth}</span><br><span style="color:#a05a00">仮のデータ・採取地点ではない</span></div>`);
   });
-
-  // Legend
-  document.getElementById("mapLegend").innerHTML=keys.map(k=>{
-    const s=S[k];
-    return`<div class="map-legend-item">
-      <div class="map-legend-dot" style="background:${s.col}"></div>
-      <div>
-        <div style="font-weight:700;font-size:13px">${k} <span style="color:var(--t3);font-weight:400;font-size:11px">${s.en}</span></div>
-        <div style="font-size:10px;color:var(--t3);font-family:'Source Code Pro',monospace">${s.loc} | pH ${s.pH} | OM ${s.om}% | ${s.depth}</div>
-        <div style="font-size:10px;color:var(--t3)">${s.desc}</div>
-      </div>
-    </div>`;
-  }).join("");
+  leafletMap.fitBounds(keys.map(k=>[S[k].lat,S[k].lng]),{padding:[28,28]});
+  document.getElementById("mapLegend").innerHTML=keys.map(k=>{const s=S[k];return`<div class="site"><div class="dot" style="background:${s.col}"></div><div><div class="nm">${k}</div><div class="meta">${s.loc}／${s.desc}<br>想定 pH ${s.pH}・有機物 ${s.om}%・深さ ${s.depth}</div></div></div>`}).join("");
 }
 
 function renderStacked(){
-  const phyla=allPhyla(dom);const cm=getColMap(dom);
-  document.getElementById("cmpTitle").textContent=dom==="bact"?"🧫 細菌門組成（さいきんもんそせい）— 全サンプル一覧比較":"🧫 真菌門組成（しんきんもんそせい）— 全サンプル一覧比較";
-  document.getElementById("cmpTitleEn").textContent=dom==="bact"?"Bacterial Phylum Composition — All Samples":"Fungal Phylum Composition — All Samples";
+  const phyla=allPhyla(dom),cm=colMap(dom),isB=dom==="bact";
+  document.getElementById("cmpTitle").textContent=isB?"細菌・アーキアの門ごとの割合":"菌類の門ごとの割合";
+  document.getElementById("cmpTitleEn").textContent=isB?"Bacterial and archaeal phyla — relative abundance (%)":"Fungal phyla — relative abundance (%)";
   if(stackedChart)stackedChart.destroy();
-  const datasets=phyla.map(p=>({
-    label:jpName(p),data:keys.map(k=>getData(k,dom)[p]||0),
-    backgroundColor:(cm[p]||"#666")+"cc",borderWidth:0
-  }));
   stackedChart=new Chart(document.getElementById("stackedChart"),{
-    type:"bar",data:{labels:keys,datasets},
-    options:{responsive:true,maintainAspectRatio:false,
-      scales:{x:{stacked:true,ticks:{color:"rgba(255,255,255,0.5)",font:{size:11}},grid:{color:"rgba(255,255,255,0.03)"}},y:{stacked:true,max:100,ticks:{color:"rgba(255,255,255,0.3)",font:{size:10},callback:v=>v+"%"},grid:{color:"rgba(255,255,255,0.04)"}}},
-      plugins:{legend:{position:"bottom",labels:{color:"rgba(255,255,255,0.5)",font:{size:9},usePointStyle:true,pointStyle:"rect",padding:6}},tooltip:{backgroundColor:"rgba(10,14,20,0.95)",borderColor:"rgba(255,255,255,0.1)",borderWidth:1,cornerRadius:8,callbacks:{label:c=>c.dataset.label+": "+c.parsed.y.toFixed(1)+"%"}}},
-      animation:{duration:700}}
+    type:"bar",
+    data:{labels:keys,datasets:phyla.map(p=>({label:jp(p),data:keys.map(k=>getData(k,dom)[p]||0),backgroundColor:cm[p]||"#666",borderWidth:0}))},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
+      scales:{x:{stacked:true,max:100,ticks:{color:tc,callback:v=>v+"%"},grid:{color:gc}},y:{stacked:true,ticks:{color:tc,font:{size:13}},grid:{display:false}}},
+      plugins:{legend:{position:"bottom",labels:{color:tc,font:{size:narrow()?11:12},boxWidth:10,padding:8}},
+        tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.x.toFixed(1)}%`}}},
+      animation:{duration:400}}
   });
 }
 
 function renderCompTable(){
-  const phyla=allPhyla(dom);const cm=getColMap(dom);
-  document.getElementById("tblTitle").textContent=dom==="bact"?"📊 相対存在比（そうたいそんざいひ）— 細菌門":"📊 相対存在比（そうたいそんざいひ）— 真菌門";
-  document.getElementById("tblTitleEn").textContent="Relative Abundance — "+( dom==="bact"?"Bacterial":"Fungal")+" Phyla (%)";
-  const avgMap=phyla.map(p=>[p,keys.reduce((s,k)=>(s+(getData(k,dom)[p]||0)),0)/keys.length]);
-  avgMap.sort((a,b)=>b[1]-a[1]);const sorted=avgMap.map(x=>x[0]);
-  let html=`<table class="cmp-table"><thead><tr><th>門名（日本語 / 学名）</th>${keys.map(k=>`<th style="text-align:right">${k}</th>`).join("")}<th style="text-align:right">平均</th></tr></thead><tbody>`;
-  sorted.forEach(p=>{
-    const vals=keys.map(k=>getData(k,dom)[p]||0);const avg=vals.reduce((s,v)=>s+v,0)/vals.length;const mx=Math.max(...vals);const c=cm[p]||"#666";
-    html+=`<tr><td style="font-weight:600"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${c};margin-right:6px;vertical-align:middle"></span>${biName(p)}</td>
-    ${vals.map(v=>`<td class="val${v===mx&&mx>0?' highlight-max':''}" style="color:${v===mx&&mx>0?'var(--amber)':v>0?c:'var(--t3)'}">${v>0?v.toFixed(1):'—'}</td>`).join("")}
-    <td class="val" style="color:var(--t2)">${avg.toFixed(1)}</td></tr>`;
-  });
-  html+=`</tbody></table>`;
-  document.getElementById("compTableWrap").innerHTML=html;
+  const phyla=allPhyla(dom),cm=colMap(dom);
+  document.getElementById("tblTitle").textContent=(dom==="bact"?"細菌・アーキア":"菌類")+"の相対存在比の一覧（％）";
+  const rows=phyla.map(p=>{const vals=keys.map(k=>getData(k,dom)[p]||0);return{p,vals,avg:sum(vals)/vals.length}}).sort((a,b)=>b.avg-a.avg);
+  let h=`<table><thead><tr><th>門</th>${keys.map(k=>`<th class="v">${k.replace("の土","")}</th>`).join("")}<th class="v">平均</th></tr></thead><tbody>`;
+  rows.forEach(({p,vals,avg})=>{const mx=Math.max(...vals);
+    h+=`<tr><td class="tx"><span class="sw" style="background:${cm[p]||'#666'}"></span>${txCell(p)}</td>${vals.map(v=>`<td class="v${v===mx&&v>0?' max':''}">${v>0?v.toFixed(1):'—'}</td>`).join("")}<td class="v muted">${avg.toFixed(1)}</td></tr>`});
+  document.getElementById("compTableWrap").innerHTML=h+"</tbody></table>";
 }
 
 function renderRadar(){
-  const topP=dom==="bact"?["Proteobacteria","Acidobacteria","Actinobacteria","Bacteroidetes","Firmicutes","Verrucomicrobia","Planctomycetes","Chloroflexi"]:["Ascomycota","Basidiomycota","Mortierellomycota","Mucoromycota","Glomeromycota","Rozellomycota"];
+  const top=dom==="bact"?["Proteobacteria","Acidobacteria","Actinobacteria","Bacteroidetes","Firmicutes","Verrucomicrobia","Planctomycetes","Chloroflexi"]:["Ascomycota","Basidiomycota","Mortierellomycota","Mucoromycota","Glomeromycota","Rozellomycota"];
   if(radarChart)radarChart.destroy();
-  const ds=keys.map(k=>({label:k,data:topP.map(p=>getData(k,dom)[p]||0),borderColor:S[k].col,backgroundColor:S[k].col+"20",borderWidth:2,pointRadius:3,pointBackgroundColor:S[k].col}));
+  const short=p=>jp(p).replace(/（.*?）/,"");
   radarChart=new Chart(document.getElementById("radarChart"),{
-    type:"radar",data:{labels:topP.map(p=>jpName(p)),datasets:ds},
+    type:"radar",
+    data:{labels:top.map(short),datasets:keys.map(k=>({label:k,data:top.map(p=>getData(k,dom)[p]||0),borderColor:S[k].col,backgroundColor:S[k].col+"22",borderWidth:2,pointRadius:2.5,pointBackgroundColor:S[k].col}))},
     options:{responsive:true,maintainAspectRatio:false,
-      scales:{r:{ticks:{color:"rgba(255,255,255,0.25)",backdropColor:"transparent",font:{size:8}},grid:{color:"rgba(255,255,255,0.06)"},pointLabels:{color:"rgba(255,255,255,0.55)",font:{size:10}}}},
-      plugins:{legend:{labels:{color:"rgba(255,255,255,0.55)",font:{size:10},usePointStyle:true,pointStyle:"circle"}},tooltip:{backgroundColor:"rgba(10,14,20,0.95)",cornerRadius:8}},
-      animation:{duration:600}}
+      scales:{r:{beginAtZero:true,ticks:{color:"#8a96a2",backdropColor:"transparent",callback:v=>v+"%"},grid:{color:gc},angleLines:{color:gc},pointLabels:{color:tc,font:{size:narrow()?10:12}}}},
+      plugins:{legend:{position:"bottom",labels:{color:tc,boxWidth:10}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.r.toFixed(1)}%`}}},
+      animation:{duration:400}}
   });
 }
 
+function bars(stats,key,fmt,maxv){
+  return stats.map(x=>`<div class="hbar"><div class="nm" style="color:${x.col}">${x.name.replace("の土","")}</div><div class="track"><div class="fill" style="width:${Math.max(2,x[key]/maxv*100)}%;background:${x.col}"></div></div><div class="v">${fmt(x[key])}</div></div>`).join("");
+}
 function renderDiversity(){
-  const allStats=keys.map(k=>{const v=Object.values(getData(k,dom));const h=shannon(v),s=simpson(v),e=evenness(v),bp=bergerParker(v),r=Object.keys(getData(k,dom)).length;return{name:k,h,s,e,bp,r,col:S[k].col,rating:divRating(h,s,e,r)}});
-  const maxH=Math.max(...allStats.map(x=>x.h));
-
-  let html=`
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:20px">
-    ${allStats.map(x=>`<div class="rating-box" style="border-left:4px solid ${x.rating.col}">
-      <div style="font-size:28px">${x.rating.emoji}</div>
-      <div><div style="font-size:10px;color:var(--t3);font-weight:700">${x.name}</div>
-      <div style="font-size:16px;font-weight:900;color:${x.rating.col}">${x.rating.label}</div>
-      <div style="font-size:10px;color:var(--t2)">H'=${x.h.toFixed(3)} | 1-D=${x.s.toFixed(4)}</div></div>
-    </div>`).join("")}
-  </div>
+  const st=keys.map(k=>{const v=Object.values(getData(k,dom));return{name:k,col:S[k].col,r:v.length,h:shannon(v),s:simpson(v),e:pielou(v),bp:bergerParker(v)}});
+  const by=(f,asc)=>[...st].sort((a,b)=>asc?a[f]-b[f]:b[f]-a[f]);
+  const maxH=Math.max(...st.map(x=>x.h));
+  document.getElementById("diversityContent").innerHTML=`
   <div class="div-grid">
-    <div class="div-card">
-      <div class="label">シャノン多様度指数 / Shannon Diversity Index (H')</div>
-      <div class="formula">H' = −Σᵢ pᵢ · ln(pᵢ)<br><br>pᵢ = 分類群 i の相対存在比（0〜1）<br>値が大きいほど多様性が高い。土壌では通常 H' = 1.5〜3.5</div>
-      ${allStats.sort((a,b)=>b.h-a.h).map(x=>`<div class="hbar-row"><div class="hbar-name" style="color:${x.col};font-weight:700">${x.name}</div><div class="hbar-track"><div class="hbar-fill" style="width:${(x.h/maxH)*100}%;background:${x.col}"></div></div><div class="hbar-val" style="color:${x.col}">${x.h.toFixed(3)}</div></div>`).join("")}
-    </div>
-    <div class="div-card">
-      <div class="label">シンプソン多様度指数 / Simpson Index (1−D)</div>
-      <div class="formula">D = Σᵢ pᵢ²<br>1−D = 1 − Σᵢ pᵢ²<br><br>1に近いほど多様。ランダムに2個体取った時に異なる種である確率。</div>
-      ${allStats.sort((a,b)=>b.s-a.s).map(x=>`<div class="hbar-row"><div class="hbar-name" style="color:${x.col};font-weight:700">${x.name}</div><div class="hbar-track"><div class="hbar-fill" style="width:${x.s*100}%;background:${x.col}"></div></div><div class="hbar-val" style="color:${x.col}">${x.s.toFixed(4)}</div></div>`).join("")}
-    </div>
-    <div class="div-card">
-      <div class="label">ピエルー均等度 / Pielou's Evenness (J')</div>
-      <div class="formula">J' = H' / ln(S)<br><br>S = 分類群数（種数）<br>全種が均等なら J'=1。偏りが大きいと J'→0。</div>
-      ${allStats.sort((a,b)=>b.e-a.e).map(x=>`<div class="hbar-row"><div class="hbar-name" style="color:${x.col};font-weight:700">${x.name}</div><div class="hbar-track"><div class="hbar-fill" style="width:${x.e*100}%;background:${x.col}"></div></div><div class="hbar-val" style="color:${x.col}">${x.e.toFixed(4)}</div></div>`).join("")}
-    </div>
-    <div class="div-card">
-      <div class="label">ベルガー=パーカー優占度 / Berger-Parker Index (d)</div>
-      <div class="formula">d = N_max / N_total<br><br>最も豊富な門の占有率。小さいほど均等（＝多様）。</div>
-      ${allStats.sort((a,b)=>a.bp-b.bp).map(x=>`<div class="hbar-row"><div class="hbar-name" style="color:${x.col};font-weight:700">${x.name}</div><div class="hbar-track"><div class="hbar-fill" style="width:${x.bp*100}%;background:${x.col}"></div></div><div class="hbar-val" style="color:${x.col}">${(x.bp*100).toFixed(1)}%</div></div>`).join("")}
-    </div>
+    <div class="div-card"><div class="label">シャノン指数 H′</div>
+      <div class="formula">H′ = −Σ pᵢ · ln pᵢ<br>pᵢ：門 i の割合（0〜1）</div>
+      <p class="small">まとまりの数が多く、割合が均等なほど大きくなる。</p>${bars(by("h"),"h",v=>v.toFixed(3),maxH)}</div>
+    <div class="div-card"><div class="label">シンプソン指数 1−D</div>
+      <div class="formula">1−D = 1 − Σ pᵢ²</div>
+      <p class="small">でたらめに二つの配列を選んだとき、違う門に当たる確率（同じものを二度選んでもよい場合）。1 に近いほど偏りが少ない。</p>${bars(by("s"),"s",v=>v.toFixed(3),1)}</div>
+    <div class="div-card"><div class="label">ピエルーの均等度 J′</div>
+      <div class="formula">J′ = H′ / ln S<br>S：まとまりの数（ここでは「その他」を含む）</div>
+      <p class="small">全部が同じ割合なら 1。どれかに偏るほど 0 に近づく。</p>${bars(by("e"),"e",v=>v.toFixed(3),1)}</div>
+    <div class="div-card"><div class="label">バーガー＝パーカー指数 d</div>
+      <div class="formula">d = いちばん多い門の割合</div>
+      <p class="small">一つの門がどれだけ優勢かを示す。小さいほど偏りが少ない。</p>${bars(by("bp",true),"bp",v=>(v*100).toFixed(1)+"%",1)}</div>
   </div>
-  <div style="overflow-x:auto;margin-top:12px">
-    <table class="cmp-table"><thead><tr><th>サンプル</th><th class="val">門数 S</th><th class="val">Shannon H'</th><th class="val">Simpson 1-D</th><th class="val">Pielou J'</th><th class="val">Berger-Parker d</th><th>評価</th></tr></thead><tbody>
-    ${allStats.map(x=>`<tr><td style="font-weight:700;color:${x.col}">${x.name}</td><td class="val">${x.r}</td><td class="val">${x.h.toFixed(3)}</td><td class="val">${x.s.toFixed(4)}</td><td class="val">${x.e.toFixed(4)}</td><td class="val">${(x.bp*100).toFixed(1)}%</td><td style="color:${x.rating.col};font-weight:700">${x.rating.emoji} ${x.rating.label}</td></tr>`).join("")}
-    </tbody></table>
-  </div>`;
-  document.getElementById("diversityContent").innerHTML=html;
+  <div class="scroll-x" style="margin-top:14px"><table><thead><tr><th>土</th><th class="v">まとまりの数 S</th><th class="v">H′</th><th class="v">1−D</th><th class="v">J′</th><th class="v">d</th></tr></thead><tbody>
+  ${st.map(x=>`<tr><td style="color:${x.col};white-space:nowrap">${x.name}</td><td class="v">${x.r}</td><td class="v">${x.h.toFixed(3)}</td><td class="v">${x.s.toFixed(3)}</td><td class="v">${x.e.toFixed(3)}</td><td class="v">${(x.bp*100).toFixed(1)}%</td></tr>`).join("")}
+  </tbody></table></div>
+  <p class="small" style="margin-top:10px">指数どうしで順位が入れ替わることがあります。指数は「数の多さ」と「均等さ」のどちらを重く見るかが違うためです。また、一つの試料の値だけでは、差が意味のあるものかは判断できません。</p>`;
 }
 
 function renderRawData(){
-  const bp=allPhyla("bact");const fp=allPhyla("fung");
-  let html=`<div style="font-weight:700;margin-bottom:8px;color:var(--blue)">■ 細菌門 / Bacterial Phyla — 相対存在比 (%)</div>
-  <div class="raw-scroll"><table class="raw-table"><thead><tr><th>門名（日本語 / 学名）</th>${keys.map(k=>`<th style="text-align:right">${k}</th>`).join("")}</tr></thead><tbody>
-  ${bp.map(p=>`<tr><td style="font-weight:600;font-size:10px">${biName(p)}</td>${keys.map(k=>{const v=S[k].bact[p];return`<td style="text-align:right">${v!==undefined?v.toFixed(1):'—'}</td>`}).join("")}</tr>`).join("")}
-  </tbody></table></div>`;
-  html+=`<div style="font-weight:700;margin:20px 0 8px;color:var(--violet)">■ 真菌門 / Fungal Phyla — 相対存在比 (%)</div>
-  <div class="raw-scroll"><table class="raw-table"><thead><tr><th>門名（日本語 / 学名）</th>${keys.map(k=>`<th style="text-align:right">${k}</th>`).join("")}</tr></thead><tbody>
-  ${fp.map(p=>`<tr><td style="font-weight:600;font-size:10px">${biName(p)}</td>${keys.map(k=>{const v=S[k].fung[p];return`<td style="text-align:right">${v!==undefined?v.toFixed(1):'—'}</td>`}).join("")}</tr>`).join("")}
-  </tbody></table></div>`;
-  html+=`<div style="font-weight:700;margin:20px 0 8px;color:var(--teal)">■ 環境パラメータ / Environmental Parameters</div>
-  <div class="raw-scroll"><table class="raw-table"><thead><tr><th>項目</th>${keys.map(k=>`<th style="text-align:right">${k}</th>`).join("")}</tr></thead><tbody>
-  <tr><td>pH</td>${keys.map(k=>`<td style="text-align:right">${S[k].pH}</td>`).join("")}</tr>
-  <tr><td>有機物 OM (%)</td>${keys.map(k=>`<td style="text-align:right">${S[k].om}</td>`).join("")}</tr>
-  <tr><td>水分 Moisture (%)</td>${keys.map(k=>`<td style="text-align:right">${S[k].moist}</td>`).join("")}</tr>
-  <tr><td>採取深度 Depth</td>${keys.map(k=>`<td style="text-align:right">${S[k].depth}</td>`).join("")}</tr>
-  <tr><td>緯度 Lat</td>${keys.map(k=>`<td style="text-align:right">${S[k].lat}</td>`).join("")}</tr>
-  <tr><td>経度 Lng</td>${keys.map(k=>`<td style="text-align:right">${S[k].lng}</td>`).join("")}</tr>
-  </tbody></table></div>`;
-  document.getElementById("rawDataSection").innerHTML=html;
+  const tbl=(title,phyla,d)=>`<h3>${title}</h3><div class="scroll-x"><table><thead><tr><th>門</th>${keys.map(k=>`<th class="v">${k.replace("の土","")}</th>`).join("")}</tr></thead><tbody>${phyla.map(p=>`<tr><td class="tx">${txCell(p)}</td>${keys.map(k=>{const v=S[k][d][p];return`<td class="v">${v!==undefined?v.toFixed(1):'—'}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>`;
+  let h=tbl("細菌・アーキア（％）",allPhyla("bact"),"bact")+tbl("菌類（％）",allPhyla("fung"),"fung");
+  const row=(l,f)=>`<tr><td>${l}</td>${keys.map(k=>`<td class="v">${f(S[k])}</td>`).join("")}</tr>`;
+  h+=`<h3>土の想定と、地図の位置</h3><div class="scroll-x"><table><thead><tr><th>項目</th>${keys.map(k=>`<th class="v">${k.replace("の土","")}</th>`).join("")}</tr></thead><tbody>
+  ${row("pH",s=>s.pH)}${row("有機物（％）",s=>s.om)}${row("水分（％）",s=>s.moist)}${row("深さ",s=>s.depth)}${row("緯度（目安）",s=>s.lat)}${row("経度（目安）",s=>s.lng)}</tbody></table></div>`;
+  document.getElementById("rawDataSection").innerHTML=h;
 }
 
-function renderRef(){
-  document.getElementById("refSection").innerHTML=`
-  <div style="font-size:12px;color:var(--t2);margin-bottom:14px">環境DNAオープンデータソースのみ記載。すべてオープンアクセスです。</div>
-  <table class="ref-table"><thead><tr><th>データソース</th><th>概要</th><th>ライセンス</th><th>URL</th></tr></thead><tbody>
-  <tr><td><strong>Earth Microbiome Project (EMP)</strong></td><td>27,000+環境サンプルの16S rRNAアンプリコンメタ解析。土壌を含む多環境の門レベル組成パターン。</td><td><span class="oss">CC BY 4.0</span></td><td><a href="https://earthmicrobiome.org/" target="_blank">earthmicrobiome.org</a></td></tr>
-  <tr><td><strong>Thompson et al. (2017)</strong><br><em>Nature</em> 551:457-463</td><td>EMP Release 1メタ解析。地球規模の微生物多様性と環境要因の関係。</td><td><span class="oss">Open Access</span></td><td><a href="https://doi.org/10.1038/nature24621" target="_blank">doi:10.1038/nature24621</a></td></tr>
-  <tr><td><strong>Delgado-Baquerizo et al. (2018)</strong><br><em>Science</em> 359(6373)</td><td>GlobalSoilBiome — 237地点の土壌細菌多様性の全球分布。</td><td><span class="oss">Open Access</span></td><td><a href="https://doi.org/10.1126/science.aap9516" target="_blank">doi:10.1126/science.aap9516</a></td></tr>
-  <tr><td><strong>EMP500 (Shaffer et al. 2022)</strong><br><em>Nature Microbiology</em></td><td>880サンプルのマルチオミクス（16S, 18S, ITS, ショットガン, メタボロミクス）。</td><td><span class="oss">Open Access</span></td><td><a href="https://doi.org/10.1038/s41564-022-01266-x" target="_blank">doi:10.1038/s41564-022-01266-x</a></td></tr>
-  <tr><td><strong>MicrobeAtlas (2026)</strong><br><em>Cell</em></td><td>2,390,937微生物群集サンプルの統合DB。16S/18Sマッピングによる環境横断比較。</td><td><span class="oss">Open Access</span></td><td><a href="https://microbeatlas.org/" target="_blank">microbeatlas.org</a></td></tr>
-  <tr><td><strong>SMAG Catalogue (Ma et al. 2023)</strong><br><em>Nat Commun</em></td><td>3,304土壌メタゲノムから40,039 MAGs。土壌微生物ダークマターの探索。</td><td><span class="oss">CC BY 4.0</span></td><td><a href="https://doi.org/10.1038/s41467-023-43000-z" target="_blank">doi:10.1038/s41467-023-43000-z</a></td></tr>
-  </tbody></table>
-  <div style="margin-top:14px;padding:12px 16px;background:rgba(42,156,197,0.05);border:1px solid rgba(42,156,197,0.12);border-radius:8px;font-size:11px;color:var(--t2)">
-    <strong>注記:</strong> 上記はすべてオープンアクセスの環境DNA研究です。本ダッシュボードのデータはこれらの典型パターンに基づくシミュレーション値であり、各地点で実際にeDNA採取を実施したものではありません。
-  </div>`;
-}
-
-function renderAll(){renderToggles();renderMap();renderStacked();renderCompTable();renderRadar();renderDiversity();renderRawData();renderRef()}
+function renderAll(){renderToggles();renderMap();renderStacked();renderCompTable();renderRadar();renderDiversity();renderRawData()}
 renderAll();
-// Fix Leaflet tile rendering after initial load
-setTimeout(()=>{if(leafletMap)leafletMap.invalidateSize()},300);
+setTimeout(()=>{if(leafletMap){leafletMap.invalidateSize();leafletMap.fitBounds(keys.map(k=>[S[k].lat,S[k].lng]),{padding:[28,28]})}},300);
+let rz;window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{renderStacked();renderRadar()},250)});
 </script>
 </body>
 </html>
